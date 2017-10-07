@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 #include "./vpx_dsp_rtcd.h"
 #include "vpx_dsp/psnr.h"
 #include "vpx_scale/yv12config.h"
@@ -306,7 +307,7 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 	double *ypsnr, double *upsnr, double *vpsnr, double *sq_error, int print_out,
 	int possible_artifact)
 {
-	int i, j;
+	int i, j, z;
 	int diff;
 	double frame_psnr;
 	double total;
@@ -314,8 +315,16 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 	unsigned char *src = source->y_buffer;
 	unsigned char *dst = dest->y_buffer;
 
-	double sub_frame_ypsnr[16][16] = { 0 }; // break the frame into 16 by 16
-	double sub_frame_total[16][16] = { 0 }; // hold 16 by 16 frame total data
+	double max_psnr_1 = 0;
+	double max_psnr_2 = 0;
+	double max_psnr_3 = 0;
+	double min_psnr = 61;
+
+	int sub_frame_height = 1;
+	int sub_frame_width = 1;
+
+	double sub_frame_ypsnr[16][16] = { { 0 } }; // break the frame into 16 by 16
+	double sub_frame_total[16][16] = { { 0 } }; // hold 16 by 16 frame total data
 
 	// try to keep at least 64 pixel segments
 	int width_segments = source->y_width / 64;
@@ -355,18 +364,13 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 	*ypsnr = vp8_mse_2_psnr_tester(source->y_height * source->y_width, 255.0,
 		total);
 
-	double max_psnr_1 = 0;
-	double max_psnr_2 = 0;
-	double max_psnr_3 = 0;
-	double min_psnr = 61;
-
 	if (possible_artifact == kRunArtifactDetection)
 	{
 		// Work out Y PSNRs for internal segments and find min and max
 		for (i = 0; i < height_segments; i++){
 			for (j = 0; j < width_segments; j++){
 
-				int sub_frame_height = 1;
+				sub_frame_height = 1;
 				if (i == (height_segments - 1))
 					sub_frame_height = source->y_height - ((height_segments - 1)
 					* (((height_segments - 1) + source->y_height)
@@ -375,7 +379,7 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 					sub_frame_height = ((height_segments - 1) + source->y_height
 					) / height_segments;
 
-				int sub_frame_width = 1;
+				sub_frame_width = 1;
 				if (j == (width_segments - 1))
 					sub_frame_width = source->y_width - ((width_segments - 1) *
 					(((width_segments - 1) + source->y_width) /
@@ -423,7 +427,7 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 
 			for (i = 0; i < height_segments; i++){
 				printf("\n");
-				for (int z = 0; z < (width_segments * 3) + 1; z++){
+				for (z = 0; z < (width_segments * 3) + 1; z++){
 					printf("-");
 				}
 
@@ -433,7 +437,7 @@ double vp8_calcpsnr_tester(YV12_BUFFER_CONFIG *source, YV12_BUFFER_CONFIG *dest,
 				}
 			}
 			printf("\n");
-			for (int z = 0; z < (width_segments * 3) + 1; z++){
+			for (z = 0; z < (width_segments * 3) + 1; z++){
 				printf("-");
 			}
 			printf("\n");

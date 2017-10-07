@@ -2441,17 +2441,17 @@ static void generate_psnr_packet(VP9_COMP *cpi) {
   struct vpx_codec_cx_pkt pkt;
   int i;
   PSNR_STATS psnr;
-#if CONFIG_VP9_HIGHBITDEPTH
-  vpx_calc_highbd_psnr(cpi->raw_source_frame, cpi->common.frame_to_show, &psnr,
-                       cpi->td.mb.e_mbd.bd, cpi->oxcf.input_bit_depth);
-#else
-  vpx_calc_psnr(cpi->raw_source_frame, cpi->common.frame_to_show, &psnr);
 
   double ypsnr = 0.0;
   double upsnr = 0.0;
   double vpsnr = 0.0;
   double sq_error = 0.0;
 
+#if CONFIG_VP9_HIGHBITDEPTH
+  vpx_calc_highbd_psnr(cpi->raw_source_frame, cpi->common.frame_to_show, &psnr,
+                       cpi->td.mb.e_mbd.bd, cpi->oxcf.input_bit_depth);
+#else
+  vpx_calc_psnr(cpi->raw_source_frame, cpi->common.frame_to_show, &psnr);
   vp8_calcpsnr_tester(cpi->raw_source_frame, cpi->common.frame_to_show,
 	  &ypsnr, &upsnr, &vpsnr, &sq_error, 1, 1);
 #endif
@@ -5011,6 +5011,13 @@ int vp9_get_compressed_data(VP9_COMP *cpi, unsigned int *frame_flags,
   int arf_src_index;
   int i;
 
+#if CONFIG_INTERNAL_STATS
+  double ypsnr = 0.0;
+  double upsnr = 0.0;
+  double vpsnr = 0.0;
+  double sq_error = 0.0;
+#endif
+
   if (is_two_pass_svc(cpi)) {
 #if CONFIG_SPATIAL_SVC
     vp9_svc_start_frame(cpi);
@@ -5324,10 +5331,10 @@ int vp9_get_compressed_data(VP9_COMP *cpi, unsigned int *frame_flags,
 #else
         vpx_calc_psnr(orig, recon, &psnr);
 
-		double ypsnr = 0.0;
-		double upsnr = 0.0;
-		double vpsnr = 0.0;
-		double sq_error = 0.0;
+		ypsnr = 0.0;
+		upsnr = 0.0;
+		vpsnr = 0.0;
+		sq_error = 0.0;
 
 		vp8_calcpsnr_tester(cpi->raw_source_frame, cpi->common.frame_to_show,
 			&ypsnr, &upsnr, &vpsnr, &sq_error, 1, 1);
@@ -5369,10 +5376,10 @@ int vp9_get_compressed_data(VP9_COMP *cpi, unsigned int *frame_flags,
 #else
           vpx_calc_psnr(orig, pp, &psnr2);
 
-		  double ypsnr = 0.0;
-		  double upsnr = 0.0;
-		  double vpsnr = 0.0;
-		  double sq_error = 0.0;
+		  ypsnr = 0.0;
+		  upsnr = 0.0;
+		  vpsnr = 0.0;
+		  sq_error = 0.0;
 
 		  vp8_calcpsnr_tester(cpi->raw_source_frame, cpi->common.frame_to_show,
 			  &ypsnr, &upsnr, &vpsnr, &sq_error, 1, 1);
